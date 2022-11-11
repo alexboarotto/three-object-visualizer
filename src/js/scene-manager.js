@@ -101,7 +101,6 @@ export class SceneManager {
           orbit.enabled = true;
           controls.enabled = false;
           currMode = MODES.ORBIT;
-          console.log(mode);
           mode.textContent = orbitMode;
           break;
       }
@@ -136,7 +135,9 @@ export class SceneManager {
 
   resetPosition(object) {
     object.position.set(0, 0, 0);
-    const yDiff = object.geometry.boundingBox.min.y;
+    const yDiff =
+      object.geometry?.boundingBox.min.y ||
+      object.children[0]?.geometry.boundingBox.min.y;
     object.position.set(0, -yDiff, 0);
   }
 }
