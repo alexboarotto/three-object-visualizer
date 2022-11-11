@@ -1,0 +1,23 @@
+{
+  "name": "Threejs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "parcel": "^2.7.0",
+    "simple-dropzone": "^0.8.1",
+    "three": "^0.146.0"
+  },
+  "devDependencies": {
+    "querystring-es3": "^0.2.1"
+  },
+  "scripts": {
+    "start": "parcel src/index.html -p 3000 --open",
+    "build:parcel": "parcel build ./src/index.html --public-url ./ --no-source-maps",
+    "build": "npm run clean && npm run build:parcel",
+    "clean": "rm -rf dist/*"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
