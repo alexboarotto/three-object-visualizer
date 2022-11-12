@@ -2,7 +2,6 @@
   "name": "Threejs",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "dependencies": {
     "parcel": "^2.7.0",
     "simple-dropzone": "^0.8.1",
