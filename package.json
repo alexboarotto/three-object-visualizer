@@ -11,7 +11,7 @@
     "querystring-es3": "^0.2.1"
   },
   "scripts": {
-    "start": "parcel src/index.html -p 3000 --open",
+    "start": "parcel src/index.html -p 3030",
     "build:parcel": "parcel build ./src/index.html --public-url ./ --no-source-maps",
     "build": "npm run clean && npm run build:parcel",
     "clean": "rm -rf dist/*"

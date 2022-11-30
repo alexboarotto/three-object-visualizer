@@ -136,8 +136,8 @@ export class SceneManager {
   resetPosition(object) {
     object.position.set(0, 0, 0);
     const yDiff =
-      object.geometry?.boundingBox.min.y ||
-      object.children[0]?.geometry.boundingBox.min.y;
-    object.position.set(0, -yDiff, 0);
+      object.geometry?.boundingBox?.min?.y ||
+      object.children[0]?.geometry?.boundingBox?.min?.y;
+    if (yDiff) object.position.set(0, -yDiff, 0);
   }
 }

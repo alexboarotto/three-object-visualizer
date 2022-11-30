@@ -3,6 +3,7 @@ import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 import { LoaderUtils, LoadingManager, Scene } from "three";
 import { SceneManager } from "./scene-manager";
+import { MTLLoader } from "three/examples/jsm/loaders/mtlloader";
 
 const MANAGER = new LoadingManager();
 
@@ -10,6 +11,67 @@ export class Loader {
   constructor() {
     this.FILETYPES = { GLB: 0, OBJ: 1, FBX: 2 };
     this.filetype = this.FILETYPES.GLB;
+    this.data = { material: {}, texture: {} };
+  }
+
+  readMTL() {
+    let input = document.createElement("input");
+    input.type = "file";
+
+    input.onchange = (e) => {
+      var file = e.target.files[0];
+      if (file) {
+        new Promise(function (resolve, reject) {
+          var reader = new FileReader();
+          reader.onload = function (evt) {
+            resolve(evt.target.result);
+          };
+          reader.readAsText(file);
+          reader.onerror = reject;
+        })
+          .then(processFileContent)
+          .catch(function (err) {
+            console.log(err);
+          });
+      }
+    };
+
+    const processFileContent = (data) => {
+      this.data.material = data;
+    };
+
+    input.click();
+  }
+
+  readTEX() {
+    let input = document.createElement("input");
+    input.type = "file";
+
+    input.onchange = (e) => {
+      var file = e.target.files[0];
+      if (file) {
+        new Promise(function (resolve, reject) {
+          var reader = new FileReader();
+          reader.onload = function (evt) {
+            resolve(evt.target.result);
+          };
+          reader.readAsText(file);
+          reader.onerror = reject;
+        })
+          .then(processFileContent)
+          .catch(function (err) {
+            console.log(err);
+          });
+      }
+    };
+
+    const processFileContent = (data) => {
+      this.data.texture = data;
+
+      this.loadOBJ();
+    };
+
+    input.click();
   }
 
   load(fileMap) {
@@ -21,7 +83,7 @@ export class Loader {
         rootPath = path.replace(file.name, "");
         this.filetype = this.FILETYPES.GLB;
       }
-      if (file.name.match(/\.(obj|mtl|png)$/)) {
+      if (file.name.match(/\.(obj)$/)) {
         rootFile = file;
         rootPath = path.replace(file.name, "");
         this.filetype = this.FILETYPES.OBJ;
@@ -164,5 +226,124 @@ export class Loader {
     });
   }
 
-  loadOBJ(url, rootPath, assetMap) {}
+  loadOBJ(url, rootPath, assetMap) {
+    let material = document.createElement("input");
+    material.type = "file";
+    let texture = document.createElement("input");
+    texture.type = "file";
+
+    material.onchange = (e) => {
+      var file = e.target.files[0];
+      if (file) {
+        new Promise(function (resolve, reject) {
+          var reader = new FileReader();
+          reader.onload = function (evt) {
+            resolve(evt.target.result);
+          };
+          reader.readAsText(file);
+          reader.onerror = reject;
+        })
+          .then(getTexture)
+          .catch(function (err) {
+            console.log(err);
+          });
+      }
+    };
+
+    texture.onchange = (e) => {
+      var file = e.target.files[0];
+      if (file) {
+        new Promise(function (resolve, reject) {
+          var reader = new FileReader();
+          reader.onload = function (evt) {
+            resolve(evt.target.result);
+          };
+          reader.readAsText(file);
+          reader.onerror = reject;
+        })
+          .then(load)
+          .catch(function (err) {
+            console.log(err);
+          });
+      }
+    };
+
+    const getTexture = (data) => {
+      this.data.material = data;
+    };
+
+    const load = (data) => {
+      this.data.texture = data;
+      loadobj(url, rootPath, assetMap);
+    };
+
+    material.click();
+    texture.click();
+
+    //-----------------------------------------------------------------
+    const loadobj = (url, rootPath, assetMap) => {
+      const baseURL = LoaderUtils.extractUrlBase(url);
+
+      // Load.
+      return new Promise((resolve, reject) => {
+        // Intercept and override relative URLs.
+        MANAGER.setURLModifier((url, path) => {
+          const normalizedURL =
+            rootPath +
+            decodeURI(url)
+              .replace(baseURL, "")
+              .replace(/^(\.?\/)/, "");
+
+          if (assetMap.has(normalizedURL)) {
+            const blob = assetMap.get(normalizedURL);
+            const blobURL = URL.createObjectURL(blob);
+            blobURLs.push(blobURL);
+            return blobURL;
+          }
+
+          return (path || "") + url;
+        });
+
+        const mtlloader = new MTLLoader();
+        const mtlURL = this.createObjectURL(this.data.material);
+
+        console.log(mtlURL);
+
+        mtlloader.load(mtlURL, (material) => {
+          material.preload();
+          const loader = new OBJLoader(MANAGER);
+
+          loader.setMaterials(material);
+
+          console.log(material);
+
+          const blobURLs = [];
+
+          loader.load(
+            url,
+            (object) => {
+              const sceneManager = new SceneManager();
+              const [scene, controls] = sceneManager.createScene(
+                object.children[0]
+              );
+              scene.add(object);
+              controls.attach(object);
+
+              blobURLs.forEach(URL.revokeObjectURL);
+
+              resolve(object);
+            },
+            undefined,
+            reject
+          );
+        });
+      });
+    };
+  }
+
+  createObjectURL(data) {
+    var binaryData = [];
+    binaryData.push(data);
+    return URL.createObjectURL(new Blob(binaryData, { type: "model/mtl" }));
+  }
 }
